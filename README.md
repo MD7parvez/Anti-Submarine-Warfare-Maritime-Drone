@@ -1,9 +1,6 @@
 # Anti-Submarine Warfare Maritime Drone
 
-Built solo as a science project.
-
-- 1st place, sub-district government science fair
-- 3rd place, 8th World Invention Competition and Exhibition (WICE)
+Solo-built maritime drone. 3rd place, 8th World Invention Competition and Exhibition (WICE).
 
 ## Hardware
 
