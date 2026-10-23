@@ -1,1 +1,209 @@
-blank for now
+
+#include <Servo.h>
+#include <SoftwareSerial.h>
+
+// HC-05: Arduino RX, TX
+SoftwareSerial BT(10, 11);
+
+// Sensors
+const byte TRIG_PIN = 7;
+const byte ECHO_PIN = 8;
+const byte SOUND_PIN = A0;
+
+// Demonstration-only servos
+Servo scanner;
+Servo hatch1;
+Servo hatch2;
+
+const byte SCANNER_PIN = 3;
+const byte HATCH1_PIN = 5;
+const byte HATCH2_PIN = 6;
+
+const int HATCH1_CLOSED = 20;
+const int HATCH1_OPEN   = 100;
+const int HATCH2_CLOSED = 20;
+const int HATCH2_OPEN   = 100;
+
+const int SOUND_THRESHOLD = 650;
+
+bool scanEnabled = false;
+int scanAngle = 15;
+int scanDirection = 1;
+
+unsigned long lastScan = 0;
+unsigned long lastSound = 0;
+
+const unsigned long SCAN_INTERVAL_MS = 120;
+const unsigned long SOUND_INTERVAL_MS = 250;
+
+long readDistanceCm() {
+  digitalWrite(TRIG_PIN, LOW);
+  delayMicroseconds(3);
+
+  digitalWrite(TRIG_PIN, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(TRIG_PIN, LOW);
+
+  unsigned long duration =
+      pulseIn(ECHO_PIN, HIGH, 25000UL);
+
+  if (duration == 0) {
+    return -1;
+  }
+
+  return duration / 58;
+}
+
+void reportDistance(int angle) {
+  long distance = readDistanceCm();
+
+  BT.print(F("ANGLE="));
+  BT.print(angle);
+  BT.print(F(",DISTANCE_CM="));
+
+  if (distance < 0) {
+    BT.println(F("NO_ECHO"));
+  } else {
+    BT.println(distance);
+  }
+}
+
+void reportSound() {
+  int soundValue = analogRead(SOUND_PIN);
+
+  BT.print(F("SOUND_RAW="));
+  BT.print(soundValue);
+
+  if (soundValue >= SOUND_THRESHOLD) {
+    BT.println(F(",LEVEL=THRESHOLD_EXCEEDED"));
+  } else {
+    BT.println(F(",LEVEL=NORMAL"));
+  }
+}
+
+void printHelp() {
+  BT.println(F("Commands:"));
+  BT.println(F("SCAN ON"));
+  BT.println(F("SCAN OFF"));
+  BT.println(F("PING"));
+  BT.println(F("SOUND"));
+  BT.println(F("H1 OPEN"));
+  BT.println(F("H1 CLOSE"));
+  BT.println(F("H2 OPEN"));
+  BT.println(F("H2 CLOSE"));
+  BT.println(F("STATUS"));
+}
+
+void handleCommand(String cmd) {
+  cmd.trim();
+  cmd.toUpperCase();
+
+  if (cmd == "SCAN ON") {
+    scanEnabled = true;
+    BT.println(F("SCAN=ON"));
+  }
+  else if (cmd == "SCAN OFF") {
+    scanEnabled = false;
+    BT.println(F("SCAN=OFF"));
+  }
+  else if (cmd == "PING") {
+    reportDistance(scanAngle);
+  }
+  else if (cmd == "SOUND") {
+    reportSound();
+  }
+  else if (cmd == "H1 OPEN") {
+    hatch1.write(HATCH1_OPEN);
+    BT.println(F("HATCH1=OPEN"));
+  }
+  else if (cmd == "H1 CLOSE") {
+    hatch1.write(HATCH1_CLOSED);
+    BT.println(F("HATCH1=CLOSED"));
+  }
+  else if (cmd == "H2 OPEN") {
+    hatch2.write(HATCH2_OPEN);
+    BT.println(F("HATCH2=OPEN"));
+  }
+  else if (cmd == "H2 CLOSE") {
+    hatch2.write(HATCH2_CLOSED);
+    BT.println(F("HATCH2=CLOSED"));
+  }
+  else if (cmd == "STATUS") {
+    BT.print(F("SCAN="));
+    BT.println(scanEnabled ? F("ON") : F("OFF"));
+    reportSound();
+  }
+  else if (cmd == "HELP") {
+    printHelp();
+  }
+  else if (cmd.length() > 0) {
+    BT.println(F("ERROR=UNKNOWN_COMMAND"));
+  }
+}
+
+void setup() {
+  pinMode(TRIG_PIN, OUTPUT);
+  pinMode(ECHO_PIN, INPUT);
+  pinMode(SOUND_PIN, INPUT);
+
+  digitalWrite(TRIG_PIN, LOW);
+
+  scanner.attach(SCANNER_PIN);
+  hatch1.attach(HATCH1_PIN);
+  hatch2.attach(HATCH2_PIN);
+
+  scanner.write(scanAngle);
+  hatch1.write(HATCH1_CLOSED);
+  hatch2.write(HATCH2_CLOSED);
+
+  BT.begin(9600);
+  Serial.begin(9600);
+
+  BT.println(F("MARITIME SENSOR DEMO READY"));
+  printHelp();
+}
+
+void loop() {
+  static String command = "";
+
+  while (BT.available()) {
+    char c = BT.read();
+
+    if (c == '\n' || c == '\r') {
+      if (command.length() > 0) {
+        handleCommand(command);
+        command = "";
+      }
+    } else if (command.length() < 40) {
+      command += c;
+    } else {
+      command = "";
+      BT.println(F("ERROR=COMMAND_TOO_LONG"));
+    }
+  }
+
+  unsigned long now = millis();
+
+  if (scanEnabled &&
+      now - lastScan >= SCAN_INTERVAL_MS) {
+    lastScan = now;
+
+    scanner.write(scanAngle);
+    reportDistance(scanAngle);
+
+    scanAngle += scanDirection * 15;
+
+    if (scanAngle >= 165) {
+      scanAngle = 165;
+      scanDirection = -1;
+    } else if (scanAngle <= 15) {
+      scanAngle = 15;
+      scanDirection = 1;
+    }
+  }
+
+  if (now - lastSound >= SOUND_INTERVAL_MS) {
+    lastSound = now;
+    reportSound();
+  }
+}
