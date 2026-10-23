@@ -1,0 +1,72 @@
+
+#include <Arduino.h>
+
+HardwareSerial NanoLink(2);
+
+const int LINK_RX = 14;
+const int LINK_TX = 15;
+const int STATUS_LED = 33;
+
+bool demoRunning = false;
+unsigned long demoStart = 0;
+unsigned long lastReport = 0;
+
+void setup() {
+  pinMode(STATUS_LED, OUTPUT);
+  digitalWrite(STATUS_LED, LOW);
+
+  Serial.begin(115200);
+
+  // UART2: RX, TX
+  NanoLink.begin(9600, SERIAL_8N1, LINK_RX, LINK_TX);
+
+  NanoLink.println("CAM_READY");
+  Serial.println("ESP32-CAM controller ready");
+}
+
+void loop() {
+  if (NanoLink.available()) {
+    String cmd = NanoLink.readStringUntil('\n');
+    cmd.trim();
+    cmd.toUpperCase();
+
+    if (cmd == "PING") {
+      NanoLink.println("PONG");
+    }
+    else if (cmd == "STATUS") {
+      NanoLink.println(demoRunning
+          ? "DEMO=RUNNING"
+          : "DEMO=IDLE");
+    }
+    else if (cmd == "DEMO START" && !demoRunning) {
+      demoRunning = true;
+      demoStart = millis();
+      lastReport = 0;
+      digitalWrite(STATUS_LED, HIGH);
+      NanoLink.println("DEMO=STARTED");
+    }
+    else if (cmd == "DEMO STOP") {
+      demoRunning = false;
+      digitalWrite(STATUS_LED, LOW);
+      NanoLink.println("DEMO=STOPPED");
+    }
+    else {
+      NanoLink.println("ERROR=UNKNOWN_COMMAND");
+    }
+  }
+
+  if (demoRunning) {
+    unsigned long elapsed = millis() - demoStart;
+
+    if (elapsed >= 4000) {
+      demoRunning = false;
+      digitalWrite(STATUS_LED, LOW);
+      NanoLink.println("DEMO=COMPLETE");
+    }
+    else if (millis() - lastReport >= 500) {
+      lastReport = millis();
+      NanoLink.print("DEMO_ELAPSED_MS=");
+      NanoLink.println(elapsed);
+    }
+  }
+}
