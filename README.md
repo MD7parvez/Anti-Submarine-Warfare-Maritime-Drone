@@ -1,8 +1,25 @@
-# Anti-Submarine-Warfare-Maritime-Drone
-I made this as a fun science project but it got me 1st place in subdistrict govt. science fair and 3rd place in natuonwide competition named 8th World Invention Competition and Exhibition. After some days I found that Anduril built one almost like this in collaboration with Australian Government.
-Hee is the drive link of my this projects only photo and my photo with my financial partner in 8th WICE prize givin ceremony- https://drive.google.com/file/d/1bZyaxotme538NAxeD7QgT7EoVhjCONJf/view?usp=drivesdk
-https://drive.google.com/file/d/1MLVB09-JFpBK17ak4FELL9Xh2sqP-Gyi/view?usp=drivesdk
+# Anti-Submarine Warfare Maritime Drone
 
-I never got any time to click some photos of my project so it was the only photo of it.
+Built solo as a science project.
 
-I used Bluetooth (hc-05) for networking amd used a esp32 cam module only as a mcu not camera to use a nrf24l01 long range module as a network jammer. and the main mcu controlling the drone via bt was Arduino Nano. and I used a basic motor driver to comtrol the thruster. also I desgined a custom thruster that's silent, and effecient.
+- 1st place, sub-district government science fair
+- 3rd place, 8th World Invention Competition and Exhibition (WICE)
+
+## Hardware
+
+- **Arduino Nano** — main controller, controlling the drone over Bluetooth using an HC-05 module
+- **ESP32-CAM board** — used as a second microcontroller, not as a camera, to run an nRF24L01 long-range radio module
+- **Motor driver** — controls the thruster
+- **Custom thruster** — designed by me with quiet operation and efficiency in mind
+
+## Photos
+
+Project photo: [View on Google Drive](https://drive.google.com/file/d/1bZyaxotme538NAxeD7QgT7EoVhjCONJf/view?usp=drivesdk)
+
+Award ceremony photo: [View on Google Drive](https://drive.google.com/file/d/1MLVB09-JFpBK17ak4FELL9Xh2sqP-Gyi/view?usp=drivesdk)
+
+I only managed to take one photo of the project itself. The photos are currently hosted on Google Drive; I plan to add suitable images directly to this repository.
+
+## Note on code
+
+The original code was lost when I reused the parts for my next project and replaced my computer's drives.
