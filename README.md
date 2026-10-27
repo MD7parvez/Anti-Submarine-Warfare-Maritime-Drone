@@ -11,7 +11,7 @@ Solo-built maritime drone. 3rd place, 8th World Invention Competition and Exhibi
 
 ## Photos
 
-Project photo: [View on Google Drive](https://drive.google.com/file/d/1bZyaxotme538NAxeD7QgT7EoVhjCONJf/view?usp=drivesdk)
+Project photo: [View on Google Drive](https://drive.google.com/drive/folders/11IGJ2NdaMiiNhMzLu6zmuOUx4v9kjzGs)
 
 Award ceremony photo: [View on Google Drive](https://drive.google.com/file/d/1MLVB09-JFpBK17ak4FELL9Xh2sqP-Gyi/view?usp=drivesdk)
 
